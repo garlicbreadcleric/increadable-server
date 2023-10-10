@@ -1,0 +1,13 @@
+pre-commit:
+  commands:
+    format:
+      run: npm run format
+    build:
+      run: npm run build
+    # test:
+    #   run: npm run test
+pre-push:
+  commands:
+    test-e2e:
+      {}
+      # run: npm run test:e2e

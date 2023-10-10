@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+
+$if(title)$
+<meta name="title" content="$title$" />
+$endif$
+
+$if(subtitle)$
+<meta name="subtitle" content="$subtitle$" />
+$endif$
+
+$for(author)$
+<meta name="author" content="$author$" />
+$endfor$
+
+$if(date)$
+<meta name="date" content="$date$" />
+$endif$
+</head>
+<body>
+$body$
+</body>
+</html>
