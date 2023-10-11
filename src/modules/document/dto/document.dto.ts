@@ -21,6 +21,11 @@ export class DocumentDto {
   @Expose()
   @ApiProperty()
   @IsUrl()
+  originalFileUrl: string;
+
+  @Expose()
+  @ApiProperty()
+  @IsUrl()
   previewFileUrl: string;
 
   @Expose()

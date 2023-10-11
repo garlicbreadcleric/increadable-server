@@ -79,7 +79,7 @@ export class FileService {
       case MimeType.FB2: {
         const ext = this.extensionFromMimeType(mimeType);
 
-        const originalName = `${documentId}.${ext}`;
+        const originalName = `${documentId}${ext}`;
         const previewName = `${documentId}.html`;
 
         const originalUrl = `https://${this.bucket}.s3.${this.region}.amazonaws.com/${originalName}`;
