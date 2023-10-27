@@ -19,7 +19,12 @@ async function bootstrap(): Promise<void> {
   });
 
   app.enableCors({
-    origin: ["http://localhost:4000", "https://increadable.app", "https://increadable-ui.vercel.app"],
+    origin: [
+      "http://localhost:4000",
+      "http://127.0.0.1:4000",
+      "https://increadable.app",
+      "https://increadable-ui.vercel.app",
+    ],
   });
 
   await app.listen(3000);

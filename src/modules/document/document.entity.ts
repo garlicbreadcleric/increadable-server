@@ -3,6 +3,7 @@ import { Entity, Enum, PrimaryKey, Property } from "@mikro-orm/core";
 import { DocumentType } from "./document-type.enum";
 import { DocumentFile } from "./document-file.type";
 import { DocumentMetadata } from "./document-metadata.type";
+import { MimeType } from "./mime-type.enum";
 
 @Entity({ tableName: "document" })
 export class DocumentEntity {
@@ -16,7 +17,7 @@ export class DocumentEntity {
   metadata: DocumentMetadata;
 
   @Property({ type: "json" })
-  files: DocumentFile[];
+  files: DocumentFile[] = [];
 
   @Property()
   originalFileUrl: string;
@@ -26,7 +27,9 @@ export class DocumentEntity {
     return this.files.find((f) => {
       switch (this.type) {
         case DocumentType.EBOOK:
-          return f.mimeType === "text/html";
+          return f.mimeType === MimeType.HTML;
+        case DocumentType.PDF:
+          return f.mimeType === MimeType.PDF;
       }
     })?.url;
   }

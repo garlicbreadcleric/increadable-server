@@ -15,7 +15,7 @@ import { DocumentType } from "./document-type.enum";
 import { DocumentEntity } from "./document.entity";
 import { DocumentFile } from "./document-file.type";
 import { DocumentMetadata } from "./document-metadata.type";
-import { MimeType } from "./mime-type.enum";
+import { BookMimeType, MimeType } from "./mime-type.enum";
 
 @Injectable()
 export class FileService {
@@ -70,6 +70,9 @@ export class FileService {
         case ".fb2":
           mimeType = MimeType.FB2;
           break;
+        case ".pdf":
+          mimeType = MimeType.PDF;
+          break;
       }
     }
 
@@ -88,14 +91,14 @@ export class FileService {
         const { buffer: previewBuffer, metadata } = await this.convertToHtml(file.buffer, mimeType);
 
         await this.putObject(originalName, file.buffer, file.mimetype);
-        await this.putObject(previewName, previewBuffer, "text/html");
+        await this.putObject(previewName, previewBuffer, MimeType.HTML);
 
         const originalFile: DocumentFile = {
-          mimeType: file.mimetype,
+          mimeType,
           url: originalUrl,
         };
         const previewFile: DocumentFile = {
-          mimeType: "text/html",
+          mimeType: MimeType.HTML,
           url: previewUrl,
         };
 
@@ -105,6 +108,30 @@ export class FileService {
           metadata,
           originalFileUrl: originalUrl,
           files: [originalFile, previewFile],
+        });
+
+        await this.em.persistAndFlush([document]);
+
+        return document;
+      }
+      case MimeType.PDF: {
+        const fileName = `${documentId}.pdf`;
+        const fileUrl = `https://${this.bucket}.s3.${this.region}.amazonaws.com/${fileName}`;
+
+        await this.putObject(fileName, file.buffer, file.mimetype);
+
+        const documentFile: DocumentFile = {
+          mimeType,
+          url: fileUrl,
+        };
+
+        const document = this.documentRepository.assign(new DocumentEntity(), {
+          id: documentId,
+          type: DocumentType.PDF,
+          metadata: {},
+          originalFileUrl: fileUrl,
+          previewFileUrl: fileUrl,
+          files: [documentFile],
         });
 
         await this.em.persistAndFlush([document]);
@@ -136,16 +163,18 @@ export class FileService {
     });
   }
 
-  private previewMimeType(documentType: DocumentType): string {
+  private previewMimeType(documentType: DocumentType): MimeType {
     switch (documentType) {
       case DocumentType.EBOOK:
-        return "text/html";
+        return MimeType.HTML;
+      case DocumentType.PDF:
+        return MimeType.PDF;
     }
   }
 
   private async convertToHtml(
     buffer: Buffer,
-    mimeType: MimeType,
+    mimeType: BookMimeType,
   ): Promise<{ buffer: Buffer; metadata: DocumentMetadata }> {
     const convertedBuffer = await pandocConvert({
       buffer,
@@ -172,7 +201,10 @@ export class FileService {
     return { buffer: outputBuffer, metadata };
   }
 
-  private pandocOptionsFromMimeType(mimeType: MimeType): { from: PandocFrom; fromOptions?: string } {
+  private pandocOptionsFromMimeType(mimeType: BookMimeType): {
+    from: PandocFrom;
+    fromOptions?: string;
+  } {
     switch (mimeType) {
       case MimeType.EPUB:
         return { from: "epub" };
@@ -191,6 +223,10 @@ export class FileService {
         return ".fb2";
       case MimeType.MARKDOWN:
         return ".md";
+      case MimeType.HTML:
+        return ".html";
+      case MimeType.PDF:
+        return ".pdf";
     }
   }
 }
